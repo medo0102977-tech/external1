@@ -807,7 +807,7 @@
     var STORAGE_KEY = '_vst_cnt_v2';
     var LOCK_KEY = '_vst_lock_v2';
     var LIMIT = 1500;
-    var LOCK_DURATION = 4 * 60 * 1000; // 4 دقائق بالمللي ثانية
+    var LOCK_DURATION = 1 * 60 * 1000; // 4 دقائق بالمللي ثانية
     try {
         var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
         var now = Date.now();
