@@ -817,23 +817,30 @@
         showTerminal('LOCK_ACTIVE');
         return;
     }
-    // Clear lock flag if cooldown passed
+    // Clear lock flag if cooldown passed, then reset server counter
     if (lockTime > 0 && (now - lockTime) >= LOCK_DURATION) {
         localStorage.setItem(LOCK_KEY, '0');
+        // Reset the server counter to 0 so next cycle starts fresh
+        fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
     }
 
-    // Use localStorage to track cycle count (not server counter)
-    var CYCLE_KEY = '_hrm_cycle_cnt';
-    var cycleCount = parseInt(localStorage.getItem(CYCLE_KEY) || '0', 10);
-    cycleCount++;
-    localStorage.setItem(CYCLE_KEY, cycleCount.toString());
-
-    var limit = parseInt(localStorage.getItem('_hrm_limit') || DEFAULT_LIMIT.toString(), 10);
-    if (cycleCount > limit) {
-        localStorage.setItem(LOCK_KEY, Date.now().toString());
-        localStorage.setItem(CYCLE_KEY, '0');
-        showTerminal('LOCK_TRIGGERED');
-    }
+    // Increment server-side counter (counts every HTTP request from anywhere)
+    fetch(COUNTER_API + '/hit/' + COUNTER_KEY)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var count = parseInt(data.value || '0', 10);
+            var limit = parseInt(localStorage.getItem('_hrm_limit') || DEFAULT_LIMIT.toString(), 10);
+            if (count > limit) {
+                // Lock the site for LOCK_DURATION
+                localStorage.setItem(LOCK_KEY, Date.now().toString());
+                // Reset counter so next cycle starts from 0 after cooldown
+                fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
+                showTerminal('LOCK_TRIGGERED');
+            }
+        })
+        .catch(function(e) {
+            console.log('Counter error, proceeding normally');
+        });
 
     function resetCounter() {
         fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
@@ -933,9 +940,17 @@
             return {text: '[!] Invalid number', cls: 'error'};
         } else if (c === 'status') {
             var curLimit = localStorage.getItem('_hrm_limit') || DEFAULT_LIMIT.toString();
-            var curUrl = localStorage.getItem('_hrm_url') || 'not set';
-            var curCount = localStorage.getItem(CYCLE_KEY) || '0';
-            return {text: '[*] COUNT: ' + curCount + ' / ' + curLimit + ' | LOCK: active', cls: 'info'};
+            // Get current server count
+            fetch(COUNTER_API + '/get/' + COUNTER_KEY)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var curCount = data.value || '0';
+                    var stDiv = document.createElement('div');
+                    stDiv.className = 'line info';
+                    stDiv.textContent = '[*] COUNT: ' + curCount + ' / ' + curLimit + ' | LOCK: active';
+                    document.getElementById('term').appendChild(stDiv);
+                });
+            return {text: '[*] Loading...', cls: 'info'};
         } else if (c === 'help') {
             return {text: 'Commands: change-url <link> | change-limit <num> | status | help | clear', cls: 'info'};
         } else if (c === 'clear') {
@@ -943,7 +958,7 @@
             return null;
         } else if (c === 'unlock') {
             localStorage.setItem(LOCK_KEY, '0');
-            localStorage.setItem(CYCLE_KEY, '0');
+            resetCounter();
             setTimeout(function() { location.reload(); }, 1000);
             return {text: '[+] Security lock disabled — Access restored', cls: 'success'};
         } else {
