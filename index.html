@@ -817,9 +817,9 @@
         showTerminal('LOCK_ACTIVE');
         return;
     }
-    // Unlock if cooldown passed
+    // Clear lock flag if cooldown passed
     if (lockTime > 0 && (now - lockTime) >= LOCK_DURATION) {
-        resetCounter();
+        localStorage.setItem(LOCK_KEY, '0');
     }
 
     // Increment server-side counter
@@ -830,6 +830,8 @@
             var limit = parseInt(localStorage.getItem('_hrm_limit') || DEFAULT_LIMIT.toString(), 10);
             if (count > limit) {
                 localStorage.setItem(LOCK_KEY, Date.now().toString());
+                // Reset counter after locking so next cycle starts from 0
+                fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
                 showTerminal('LOCK_TRIGGERED');
             }
         })
