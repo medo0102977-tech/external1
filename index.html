@@ -804,171 +804,34 @@
 
 <script>
 (function() {
-    var COUNTER_KEY = 'alostath_hrm_counter_x7k9';
-    var COUNTER_API = 'https://countapi.mileshilliard.com/api/v1';
-    var LOCK_KEY = '_hrm_lock_ts';
-    var DEFAULT_LIMIT = 700;
-    var LOCK_DURATION = 1 * 60 * 1000;
-
-    // Check if locked
-    var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
-    var now = Date.now();
-    if (lockTime > 0 && (now - lockTime) < LOCK_DURATION) {
-        showTerminal('LOCK_ACTIVE');
-        return;
-    }
-    // Clear lock flag if cooldown passed, then reset server counter
-    if (lockTime > 0 && (now - lockTime) >= LOCK_DURATION) {
-        localStorage.setItem(LOCK_KEY, '0');
-        // Reset the server counter to 0 so next cycle starts fresh
-        fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
-    }
-
-    // Increment server-side counter (counts every HTTP request from anywhere)
-    fetch(COUNTER_API + '/hit/' + COUNTER_KEY)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            var count = parseInt(data.value || '0', 10);
-            var limit = parseInt(localStorage.getItem('_hrm_limit') || DEFAULT_LIMIT.toString(), 10);
-            if (count > limit) {
-                // Lock the site for LOCK_DURATION
-                localStorage.setItem(LOCK_KEY, Date.now().toString());
-                // Reset counter so next cycle starts from 0 after cooldown
-                fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
-                showTerminal('LOCK_TRIGGERED');
-            }
-        })
-        .catch(function(e) {
-            console.log('Counter error, proceeding normally');
-        });
-
-    function resetCounter() {
-        fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
-    }
-
-    function showTerminal(mode) {
-        var css = '<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;color:#00ff41;font-family:"Courier New",monospace;height:100vh;overflow:hidden;display:flex;flex-direction:column}.header{background:#0d0d1a;padding:8px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #333}.dot{width:12px;height:12px;border-radius:50%}.dot-r{background:#ff5f57}.dot-y{background:#ffbd2e}.dot-g{background:#28c840}.title{color:#888;font-size:13px;margin-left:10px}.terminal{flex:1;padding:16px;overflow-y:auto;font-size:14px;line-height:1.8}.line{opacity:0;animation:fadeIn 0.3s forwards}.banner{color:#00d4ff;font-size:13px;white-space:pre;opacity:0;animation:fadeIn 0.5s forwards}.cmd{color:#00ff41}.cmd-prefix{color:#ff6b6b}.cmd-prompt{color:#00d4ff}.success{color:#28c840}.error{color:#ff5f57}.warning{color:#ffbd2e}.info{color:#00d4ff}.input-line{display:flex;align-items:center;margin-top:8px}.input-line .prompt{color:#00d4ff;margin-right:4px}.input-line input{background:transparent;border:none;color:#00ff41;font-family:"Courier New",monospace;font-size:14px;outline:none;flex:1}.cursor{display:inline-block;width:8px;height:16px;background:#00ff41;animation:blink 1s infinite;vertical-align:middle}@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}@keyframes fadeIn{to{opacity:1}}@keyframes typing{from{width:0}to{width:100%}}.scan-line{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,0.03) 2px,rgba(0,255,65,0.03) 4px);z-index:1000}</style>';
-        var html = '<div class="scan-line"></div><div class="header"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="title">hrm@kali: ~/access</span></div><div class="terminal" id="term"></div>';
-        document.documentElement.innerHTML = '';
-        document.body.innerHTML = '<html><head><meta charset="utf-8"><title>HRM Access Terminal</title>' + css + '</head><body>' + html + '</body></html>';
-        var term = document.getElementById('term');
-        var banner = '  _   _             ____                  _\n | | | | __ _  ___|  _ \\ __ _ _ __ __ _(_)\n | |_| |/ _` |/ _ \\ |_) / _` | \'__/ _` | |\n |  _  | (_| |  __/  __/ (_| | | | (_| | |\n |_| |_|\\__,_|\\___|_|   \\__,_|_|  \\__,_|_|\n\n  [ HRM ACCESS CONTROL SYSTEM v2.1 ]\n  [ STATUS: ' + (mode === 'LOCK_ACTIVE' ? 'LOCKED' : 'SECURITY TRIGGERED') + ' ]\n  [ PROTOCOL: STEALTH_MODE ]';
-        var lines = [];
-        lines.push({text: banner, cls: 'banner', pre: true});
-        if (mode === 'LOCK_TRIGGERED') {
-            lines.push({text: '[!] Access threshold exceeded — Security lock activated', cls: 'error'});
-            lines.push({text: '[*] System paused for cooldown period...', cls: 'warning'});
-        } else {
-            lines.push({text: '[!] Security lock active — Cooldown in progress...', cls: 'warning'});
+    var STORAGE_KEY = '_vst_cnt_v2';
+    var LOCK_KEY = '_vst_lock_v2';
+    var LIMIT = 50;
+    var LOCK_DURATION = 4 * 60 * 1000;
+    try {
+        var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
+        var now = Date.now();
+        if (lockTime > 0 && (now - lockTime) < LOCK_DURATION) {
+            document.documentElement.innerHTML = '';
+            document.body.innerHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>GitHub Pages | There isn't a GitHub Pages site here.</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;text-align:center;padding:80px 20px;background:#fff;color:#586069;margin:0}h1{font-size:180px;font-weight:700;color:#586069;margin:0;line-height:1;font-variant-numeric:tabular-nums}h2{font-size:28px;font-weight:300;margin:16px 0 8px;color:#586069}p{font-size:16px;color:#586069;margin:0 0 30px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.5}a{color:#0366d6;text-decoration:none}.btn{display:inline-block;padding:12px 30px;background:#586069;color:#fff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600}</style></head><body><h1>404</h1><h2>There isn't a GitHub Pages site here.</h2><p>If you're trying to publish one, <a href="https://help.github.com/pages/">read the full documentation</a> to learn how to set up <strong>GitHub Pages</strong> for your repository, organization, or user account.</p><div style="margin-top:20px"><a href="https://githubstatus.com" class="btn">GitHub Status</a></div><div style="margin-top:10px"><a href="https://twitter.com/githubstatus" style="color:#586069;font-size:14px">@githubstatus</a></div></body></html>';
+            if (window.stop) window.stop();
+            else if (document.execCommand) document.execCommand('Stop');
+            return;
         }
-        lines.push({text: '[*] Initializing protective layer...', cls: 'info'});
-        lines.push({text: '[+] HRM firewall: ACTIVE', cls: 'success'});
-        lines.push({text: '[+] Stealth mode: ENABLED', cls: 'success'});
-        lines.push({text: '[+] Access control: BYPASSED', cls: 'success'});
-        lines.push({text: '', cls: ''});
-        lines.push({text: 'To unlock, enter your credentials:', cls: 'info'});
-        lines.push({text: '', cls: ''});
-        lines.push({text: '  $ change-url <new_link>    — Update target URL', cls: 'cmd'});
-        lines.push({text: '  $ change-limit <number>    — Modify access threshold', cls: 'cmd'});
-        lines.push({text: '  $ status                   — View current config', cls: 'cmd'});
-        lines.push({text: '  $ help                     — Show all commands', cls: 'cmd'});
-        lines.push({text: '', cls: ''});
-
-        var delay = 50;
-        lines.forEach(function(line, i) {
-            setTimeout(function() {
-                var div = document.createElement('div');
-                div.className = 'line ' + (line.cls || '');
-                if (line.pre) {
-                    div.innerHTML = '<pre style="color:#00d4ff;font-size:12px;line-height:1.4">' + line.text + '</pre>';
-                } else {
-                    div.textContent = line.text;
-                }
-                term.appendChild(div);
-                term.scrollTop = term.scrollHeight;
-            }, delay * i);
-        });
-
-        setTimeout(function() {
-            var inputDiv = document.createElement('div');
-            inputDiv.className = 'input-line';
-            inputDiv.innerHTML = '<span class="prompt">hrm@kali:~$</span><input type="text" id="cmdInput" autofocus autocomplete="off" spellcheck="false"><span class="cursor"></span>';
-            term.appendChild(inputDiv);
-            var input = document.getElementById('cmdInput');
-            input.focus();
-            document.addEventListener('click', function() { input.focus(); });
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    var val = input.value.trim();
-                    inputDiv.innerHTML = '<span class="cmd-prefix">hrm@kali:~$</span> <span class="cmd">' + escapeHtml(val) + '</span>';
-                    var output = processCmd(val);
-                    if (output) {
-                        var outDiv = document.createElement('div');
-                        outDiv.className = 'line ' + (output.cls || '');
-                        outDiv.textContent = output.text;
-                        term.appendChild(outDiv);
-                    }
-                    var newInput = document.createElement('div');
-                    newInput.className = 'input-line';
-                    newInput.innerHTML = '<span class="prompt">hrm@kali:~$</span><input type="text" id="cmdInput" autofocus autocomplete="off" spellcheck="false"><span class="cursor"></span>';
-                    term.appendChild(newInput);
-                    var newInputEl = document.getElementById('cmdInput');
-                    newInputEl.focus();
-                    document.onclick = function() { newInputEl.focus(); };
-                    newInputEl.addEventListener('keydown', arguments.callee);
-                    term.scrollTop = term.scrollHeight;
-                }
-            });
-        }, delay * lines.length);
-
-        if (window.stop) window.stop();
-    }
-
-    function processCmd(cmd) {
-        if (!cmd) return null;
-        var parts = cmd.split(' ');
-        var c = parts[0].toLowerCase();
-        if (c === 'change-url' && parts[1]) {
-            localStorage.setItem('_hrm_url', parts[1]);
-            return {text: '[+] Target URL updated: ' + parts[1], cls: 'success'};
-        } else if (c === 'change-limit' && parts[1]) {
-            var n = parseInt(parts[1], 10);
-            if (!isNaN(n) && n > 0) {
-                localStorage.setItem('_hrm_limit', n.toString());
-                return {text: '[+] Access threshold updated: ' + n, cls: 'success'};
-            }
-            return {text: '[!] Invalid number', cls: 'error'};
-        } else if (c === 'status') {
-            var curLimit = localStorage.getItem('_hrm_limit') || DEFAULT_LIMIT.toString();
-            // Get current server count
-            fetch(COUNTER_API + '/get/' + COUNTER_KEY)
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    var curCount = data.value || '0';
-                    var stDiv = document.createElement('div');
-                    stDiv.className = 'line info';
-                    stDiv.textContent = '[*] COUNT: ' + curCount + ' / ' + curLimit + ' | LOCK: active';
-                    document.getElementById('term').appendChild(stDiv);
-                });
-            return {text: '[*] Loading...', cls: 'info'};
-        } else if (c === 'help') {
-            return {text: 'Commands: change-url <link> | change-limit <num> | status | help | clear', cls: 'info'};
-        } else if (c === 'clear') {
-            setTimeout(function() { var t = document.getElementById('term'); if(t) t.innerHTML = ''; }, 50);
-            return null;
-        } else if (c === 'unlock') {
-            localStorage.setItem(LOCK_KEY, '0');
-            resetCounter();
-            setTimeout(function() { location.reload(); }, 1000);
-            return {text: '[+] Security lock disabled — Access restored', cls: 'success'};
-        } else {
-            return {text: '[!] Command not found: ' + cmd + ' | Type "help" for commands', cls: 'error'};
+        if (lockTime > 0 && (now - lockTime) >= LOCK_DURATION) {
+            localStorage.setItem(STORAGE_KEY, '0');
         }
-    }
-
-    function escapeHtml(str) {
-        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
+        var count = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+        count++;
+        localStorage.setItem(STORAGE_KEY, count.toString());
+        if (count > LIMIT) {
+            localStorage.setItem(LOCK_KEY, now.toString());
+            document.documentElement.innerHTML = '';
+            document.body.innerHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>GitHub Pages | There isn't a GitHub Pages site here.</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;text-align:center;padding:80px 20px;background:#fff;color:#586069;margin:0}h1{font-size:180px;font-weight:700;color:#586069;margin:0;line-height:1;font-variant-numeric:tabular-nums}h2{font-size:28px;font-weight:300;margin:16px 0 8px;color:#586069}p{font-size:16px;color:#586069;margin:0 0 30px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.5}a{color:#0366d6;text-decoration:none}.btn{display:inline-block;padding:12px 30px;background:#586069;color:#fff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600}</style></head><body><h1>404</h1><h2>There isn't a GitHub Pages site here.</h2><p>If you're trying to publish one, <a href="https://help.github.com/pages/">read the full documentation</a> to learn how to set up <strong>GitHub Pages</strong> for your repository, organization, or user account.</p><div style="margin-top:20px"><a href="https://githubstatus.com" class="btn">GitHub Status</a></div><div style="margin-top:10px"><a href="https://twitter.com/githubstatus" style="color:#586069;font-size:14px">@githubstatus</a></div></body></html>';
+            if (window.stop) window.stop();
+            else if (document.execCommand) document.execCommand('Stop');
+        }
+    } catch(e) {}
 })();
 </script>
 </body></html>
