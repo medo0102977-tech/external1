@@ -56,6 +56,36 @@
       margin-bottom: 20px;
     }
   </style>
+  <script>
+    // كل 10 ثواني نجرّب نفتح الموقع الرئيسي
+    // لو شغال → نرجعله، لو لسه مقفول → نفضل في صفحة 404
+    (function() {
+      var CHECK_INTERVAL = 10000; // كل 10 ثواني
+      var MAIN_URL = 'https://medo0102977-tech.github.io/external1/';
+
+      function tryReturn() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', MAIN_URL, true);
+        xhr.timeout = 5000;
+        xhr.onload = function() {
+          // لو الموقع بعت صفحة كاملة مش 404 → نرجع
+          if (xhr.status === 200 && xhr.responseText.length > 1000) {
+            window.location.replace(MAIN_URL);
+          }
+        };
+        xhr.onerror = function() {
+          // لسه مقفول → نفضل هنا
+        };
+        xhr.ontimeout = function() {
+          // لسه مقفول → نفضل هنا
+        };
+        xhr.send();
+      }
+
+      // نبدأ نجرّب كل 10 ثواني
+      setInterval(tryReturn, CHECK_INTERVAL);
+    })();
+  </script>
 </head>
 <body>
 
