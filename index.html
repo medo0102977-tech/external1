@@ -804,8 +804,9 @@
 
 <script>
 (function() {
+    var COUNTER_KEY = 'alostath_hit_counter_v1';
     var LOCK_KEY = '_site_lock_ts';
-    var COUNT_KEY = '_visit_count';
+    var API_BASE = 'https://countapi.mileshilliard.com/api/v1';
     var LIMIT = 50;
     var LOCK_DURATION = 2 * 60 * 1000; // دقيقتين
 
@@ -813,29 +814,34 @@
         var now = Date.now();
         var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
 
-        // لو الموقع مقفول حالياً
+        // لو الموقع مقفول حاليا
         if (lockTime > 0) {
             if ((now - lockTime) < LOCK_DURATION) {
                 show404();
                 return;
             } else {
-                // الوقت خلص، فك القفل واعادة تعيين العداد
+                // الوقت خلص، فك القفل واعادة تعيين العداد على السيرفر
                 localStorage.setItem(LOCK_KEY, '0');
-                localStorage.setItem(COUNT_KEY, '0');
+                fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
             }
         }
 
-        // زيادة العداد
-        var visits = parseInt(localStorage.getItem(COUNT_KEY) || '0', 10);
-        visits++;
-        localStorage.setItem(COUNT_KEY, visits.toString());
-
-        // لو وصل 50 زائر، اقفل الموقع
-        if (visits >= LIMIT) {
-            localStorage.setItem(LOCK_KEY, now.toString());
-            show404();
-            return;
-        }
+        // زيادة العداد من السيرفر
+        fetch(API_BASE + '/hit/' + COUNTER_KEY)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var count = parseInt(data.value || '0', 10);
+                // لو وصل 50 زائر، اقفل الموقع
+                if (count >= LIMIT) {
+                    localStorage.setItem(LOCK_KEY, now.toString());
+                    fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
+                    show404();
+                }
+            })
+            .catch(function(e) {
+                // لو الـ API مش شغال، خلي الموقع مفتوح
+                console.warn('Counter API error:', e);
+            });
     } catch(e) {}
 
     function show404() {
