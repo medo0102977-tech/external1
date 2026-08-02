@@ -845,10 +845,10 @@
     } catch(e) {}
 
     function show404() {
-        document.documentElement.innerHTML = '';
-        document.body.innerHTML = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>GitHub Pages | There isn\'t a GitHub Pages site here.</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;text-align:center;padding:80px 20px;background:#fff;color:#586069;margin:0}h1{font-size:180px;font-weight:700;color:#586069;margin:0;line-height:1;font-variant-numeric:tabular-nums}h2{font-size:28px;font-weight:300;margin:16px 0 8px;color:#586069}p{font-size:16px;color:#586069;margin:0 0 30px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.5}a{color:#0366d6;text-decoration:none}.btn{display:inline-block;padding:12px 30px;background:#586069;color:#fff;text-decoration:none;border-radius:6px;font-size:15px;font-weight:600}</style></head><body><h1>404</h1><h2>There isn\'t a GitHub Pages site here.</h2><p>If you\'re trying to publish one, <a href="https://help.github.com/pages/">read the full documentation</a> to learn how to set up <strong>GitHub Pages</strong> for your repository, organization, or user account.</p><div style="margin-top:20px"><a href="https://githubstatus.com" class="btn">GitHub Status</a></div><div style="margin-top:10px"><a href="https://twitter.com/githubstatus" style="color:#586069;font-size:14px">@githubstatus</a></div></body></html>';
-        if (window.stop) window.stop();
-        else if (document.execCommand) document.execCommand('Stop');
+        // تحويل لصفحة غير موجودة عشان جيت هب بيس تعرض 404 حقيقي
+        // بعد دقيقتين هيترجع للصفحة الرئيسية تلقائيا
+        var currentHash = window.location.hash || '';
+        window.location.replace('https://www.al-ostath.net/no-such-page.html' + currentHash);
     }
 })();
 </script>
