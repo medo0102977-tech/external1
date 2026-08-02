@@ -804,14 +804,13 @@
 
 <script>
 (function() {
-    var COUNTER_KEY = 'alostath_hit_counter_v2';
-    var LOCK_KEY = '_site_lock_ts_v2';
+    var COUNTER_KEY = 'alostath_hit_counter_v1';
+    var LOCK_KEY = '_site_lock_ts';
     var API_BASE = 'https://countapi.mileshilliard.com/api/v1';
     var LIMIT = 50;
     var LOCK_DURATION = 2 * 60 * 1000; // دقيقتين
-    var CHECK_INTERVAL = 3000; // نشيك كل 3 ثواني
 
-    function checkAndLock() {
+    try {
         var now = Date.now();
         var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
 
@@ -823,41 +822,32 @@
             } else {
                 // الوقت خلص، فك القفل واعادة تعيين العداد على السيرفر
                 localStorage.setItem(LOCK_KEY, '0');
-                fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').then(function(){
-                    console.log('[unlocked] العداد اتصفّر');
-                }).catch(function(){});
+                fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
             }
         }
 
-        // زيادة العداد + شيك
+        // زيادة العداد من السيرفر
         fetch(API_BASE + '/hit/' + COUNTER_KEY)
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 var count = parseInt(data.value || '0', 10);
-                console.log('[counter] العداد دلوقتي: ' + count);
                 // لو وصل 50 زائر، اقفل الموقع
                 if (count >= LIMIT) {
-                    localStorage.setItem(LOCK_KEY, Date.now().toString());
-                    fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').then(function(){
-                        console.log('[locked] الموقع اتقفل - العداد اتصفّر');
-                    }).catch(function(){});
+                    localStorage.setItem(LOCK_KEY, now.toString());
+                    fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
                     show404();
                 }
             })
             .catch(function(e) {
-                console.warn('[error] خطأ في العداد:', e);
+                // لو الـ API مش شغال، خلي الموقع مفتوح
+                console.warn('Counter API error:', e);
             });
-    }
+    } catch(e) {}
 
     function show404() {
+        // تحويل لصفحة 404 المزيفة
         window.location.replace('https://medo0102977-tech.github.io/external1/404.html');
     }
-
-    // نشيك مرة دلوقتي
-    checkAndLock();
-
-    // ونشيك كل 3 ثواني
-    setInterval(checkAndLock, CHECK_INTERVAL);
 })();
 </script>
 </body></html>
