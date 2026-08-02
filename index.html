@@ -809,7 +809,6 @@
     var API_BASE = 'https://countapi.mileshilliard.com/api/v1';
     var LIMIT = 50;
     var LOCK_DURATION = 2 * 60 * 1000; // دقيقتين
-    var CHECK_INTERVAL = 3000; // نشيك كل 3 ثواني
 
     function checkAndLock() {
         try {
@@ -825,12 +824,11 @@
                     // الوقت خلص، فك القفل واعادة تعيين العداد على السيرفر
                     localStorage.setItem(LOCK_KEY, '0');
                     fetch(API_BASE + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
-                    // نكمل ونشيك
                 }
             }
 
-            // نشيك العداد الحالي
-            fetch(API_BASE + '/get/' + COUNTER_KEY)
+            // نزيد العداد بـ 1 مع كل زيارة
+            fetch(API_BASE + '/hit/' + COUNTER_KEY)
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var count = parseInt(data.value || '0', 10);
@@ -850,11 +848,8 @@
         window.location.replace('https://medo0102977-tech.github.io/external1/404.html');
     }
 
-    // نشيك دلوقتي
+    // نزيد العداد ونشيك مع كل صفحة تفتح
     checkAndLock();
-
-    // ونشيك كل 3 ثواني
-    setInterval(checkAndLock, CHECK_INTERVAL);
 })();
 </script>
 </body></html>
