@@ -804,33 +804,38 @@
 
 <script>
 (function() {
-    var COUNTER_KEY = 'alostath_404_lock_v3';
-    var COUNTER_API = 'https://countapi.mileshilliard.com/api/v1';
-    var LOCK_KEY = '_hrm_lock_ts';
+    var LOCK_KEY = '_site_lock_ts';
+    var COUNT_KEY = '_visit_count';
     var LIMIT = 50;
-    var LOCK_DURATION = 4 * 60 * 1000;
+    var LOCK_DURATION = 2 * 60 * 1000; // دقيقتين
+
     try {
-        var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
         var now = Date.now();
-        if (lockTime > 0 && (now - lockTime) < LOCK_DURATION) {
+        var lockTime = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
+
+        // لو الموقع مقفول حالياً
+        if (lockTime > 0) {
+            if ((now - lockTime) < LOCK_DURATION) {
+                show404();
+                return;
+            } else {
+                // الوقت خلص، فك القفل واعادة تعيين العداد
+                localStorage.setItem(LOCK_KEY, '0');
+                localStorage.setItem(COUNT_KEY, '0');
+            }
+        }
+
+        // زيادة العداد
+        var visits = parseInt(localStorage.getItem(COUNT_KEY) || '0', 10);
+        visits++;
+        localStorage.setItem(COUNT_KEY, visits.toString());
+
+        // لو وصل 50 زائر، اقفل الموقع
+        if (visits >= LIMIT) {
+            localStorage.setItem(LOCK_KEY, now.toString());
             show404();
             return;
         }
-        if (lockTime > 0 && (now - lockTime) >= LOCK_DURATION) {
-            localStorage.setItem(LOCK_KEY, '0');
-            fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
-        }
-        fetch(COUNTER_API + '/hit/' + COUNTER_KEY)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                var count = parseInt(data.value || '0', 10);
-                if (count > LIMIT) {
-                    localStorage.setItem(LOCK_KEY, now.toString());
-                    fetch(COUNTER_API + '/set/' + COUNTER_KEY + '?value=0').catch(function(){});
-                    show404();
-                }
-            })
-            .catch(function(e) {});
     } catch(e) {}
 
     function show404() {
